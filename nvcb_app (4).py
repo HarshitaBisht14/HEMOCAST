@@ -26,7 +26,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <style>
     .stApp { background-color: #f0f4f8; }
@@ -65,7 +65,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Feature lists ──────────────────────────────────────────────────────────────
+
 ALL_FEATURES = [
     "EXTEMA10",  "EXTEMCFT",   "EXTEMMCF",   "EXTEMMCFt",  "EXTEMCT",
     "EXTEMAUC",  "EXTEMACF",   "EXTEMMAXV",  "FIBTEMLI30", "FIBTEMA10",
@@ -75,7 +75,7 @@ ALL_FEATURES = [
     "PortalHypertension", "Sepsis", "DM2",
 ]
 
-# 9 features shown to the clinician
+# 9 features 
 TOP9 = [
     "EXTEMA10",   # ROTEM EXTEM amplitude at 10 min
     "EXTEMCFT",   # ROTEM EXTEM clot formation time
@@ -96,7 +96,7 @@ RENAME_MAP = {
 }
 
 
-# ── Model training (cached so it only runs once per session) ───────────────────
+
 @st.cache_resource(show_spinner="Training GBM model on NVCB dataset — please wait ...")
 def train_gbm(uploaded_file):
     df = pd.read_excel(uploaded_file)
@@ -114,7 +114,6 @@ def train_gbm(uploaded_file):
         X_temp, y_temp, test_size=0.25, stratify=y_temp, random_state=42
     )
 
-    # Oversample minority class on training split only
     df_tr          = X_train.copy()
     df_tr["label"] = y_train.values
     majority       = df_tr[df_tr["label"] == 0]
@@ -155,7 +154,7 @@ def train_gbm(uploaded_file):
     return gbm, scaler, feats, float(best_thresh)
 
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+
 with st.sidebar:
     st.header("⚙️ Setup")
     st.markdown("Upload the NVCB dataset to train the model.")
@@ -207,7 +206,7 @@ st.divider()
 
 
 # ── Model performance summary ──────────────────────────────────────────────────
-st.subheader("📈 Model Performance (Test Set)")
+st.subheader("Model Performance (Test Set)")
 c1, c2, c3, c4 = st.columns(4)
 for col, label, value in zip(
     [c1, c2, c3, c4],
@@ -226,7 +225,7 @@ st.divider()
 
 
 # ── Patient input form ─────────────────────────────────────────────────────────
-st.subheader("📋 Enter Patient Values")
+st.subheader("Enter Patient Values")
 st.markdown("Fill in the **9 most important features** for prediction.")
 
 col1, col2 = st.columns(2)
@@ -306,13 +305,12 @@ if predict_clicked:
                     "CTP",      "Albumin",  "Hb",       "Urea"],
         "Value"  : [EXTEMA10,   EXTEMCFT,   EXTEMAUC,   EXTEMMCFt,   FIBTEMAUC,
                     CTP,         Albumin,   Hb,          Urea],
-        "Unit"   : ["mm",       "sec",      "AU",       "min",        "AU",
+        "Unit"   : ["mm",       "sec",      "AU",       "sec",        "AU",
                     "score",    "g/dL",     "g/dL",     "mg/dL"],
     })
     st.dataframe(summary, use_container_width=True, hide_index=True)
 
 
-# ── Footer ─────────────────────────────────────────────────────────────────────
 st.divider()
 st.markdown("""
 <small>
