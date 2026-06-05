@@ -19,18 +19,13 @@ from sklearn.utils           import resample
 from sklearn.ensemble        import GradientBoostingClassifier
 from sklearn.metrics         import roc_curve
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Page config  (must be the FIRST Streamlit call)
-# ─────────────────────────────────────────────────────────────────────────────
+
 st.set_page_config(
     page_title="NVCB Prediction Tool",
     page_icon="🩺",
     layout="wide",
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CSS
-# ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     .stApp { background-color: #f0f4f8; }
@@ -69,9 +64,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Feature definitions
-# ─────────────────────────────────────────────────────────────────────────────
+
 ALL_FEATURES = [
     "EXTEMA10", "EXTEMCFT",  "EXTEMMCF",  "EXTEMMCFt", "EXTEMCT",
     "EXTEMAUC", "EXTEMACF",  "EXTEMMAXV", "FIBTEMLI30", "FIBTEMA10",
@@ -81,7 +74,7 @@ ALL_FEATURES = [
     "PortalHypertension",    "Sepsis",    "DM2",
 ]
 
-# 9 features shown to the clinician (DIC excluded)
+# 9 features shown to the clinician
 TOP9 = [
     "EXTEMA10",   # ROTEM EXTEM amplitude at 10 min
     "EXTEMCFT",   # ROTEM EXTEM clot formation time
@@ -94,9 +87,7 @@ TOP9 = [
     "Urea",       # Blood urea nitrogen
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Model training  (cached — runs once per uploaded file)
-# ─────────────────────────────────────────────────────────────────────────────
+
 @st.cache_resource(show_spinner="Training GBM model on NVCB dataset — please wait ...")
 def train_gbm(uploaded_file):
     df = pd.read_excel(uploaded_file)
@@ -158,17 +149,13 @@ def train_gbm(uploaded_file):
 
     return gbm, scaler, feats, float(best_thresh)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Header
-# ─────────────────────────────────────────────────────────────────────────────
+
 st.title("🩺 NVCB Prediction Tool")
 st.markdown("**Non-Variceal Coagulopathic Bleeding in Acute Decompensated Cirrhosis**")
 st.markdown("*Institute of Liver and Biliary Diseases (ILBS) · GBM Model · AUC 0.854 · Sensitivity 0.84*")
 st.divider()
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Sidebar — dataset upload + model info
-# ─────────────────────────────────────────────────────────────────────────────
+
 with st.sidebar:
     st.header("⚙️ Setup")
     st.markdown("Upload the NVCB dataset to train the model.")
@@ -200,22 +187,20 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Guard — dataset must be uploaded before anything else runs
-# ─────────────────────────────────────────────────────────────────────────────
+
 if uploaded is None:
-    st.info("👈 Please upload the NVCB dataset in the sidebar to train the model first.")
+    st.info("Please upload the NVCB dataset in the sidebar to train the model first.")
     st.stop()
 
 gbm, scaler, feats, threshold = train_gbm(uploaded)
 
-st.success(f"✅ GBM model trained successfully.  Threshold = {threshold:.3f}")
+st.success(f"GBM model trained successfully.  Threshold = {threshold:.3f}")
 st.divider()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Model performance summary (hardcoded test-set results)
 # ─────────────────────────────────────────────────────────────────────────────
-st.subheader("📈 Model Performance (Test Set)")
+st.subheader("Model Performance (Test Set)")
 c1, c2, c3, c4 = st.columns(4)
 for col, label, value in zip(
     [c1, c2, c3, c4],
@@ -232,10 +217,8 @@ for col, label, value in zip(
 
 st.divider()
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Patient input form
-# ─────────────────────────────────────────────────────────────────────────────
-st.subheader("📋 Enter Patient Values")
+
+st.subheader("Enter Patient Values")
 st.markdown("Fill in the **9 most important features** for prediction. (DIC excluded)")
 
 col1, col2 = st.columns(2)
@@ -245,22 +228,20 @@ with col1:
     EXTEMA10  = st.number_input("EXTEMA10  — EXTEM amplitude at 10 min (mm)",      min_value=0.0,  max_value=100.0,   value=45.0,  step=0.1)
     EXTEMCFT  = st.number_input("EXTEMCFT  — EXTEM clot formation time (sec)",     min_value=0.0,  max_value=1000.0,  value=120.0, step=1.0)
     EXTEMAUC  = st.number_input("EXTEMAUC  — EXTEM area under curve",              min_value=0.0,  max_value=20000.0, value=5000.0, step=10.0)
-    EXTEMMCFt = st.number_input("EXTEMMCFt — EXTEM max clot firmness time (min)",  min_value=0.0,  max_value=100.0,   value=7.0,   step=0.1)
+    EXTEMMCFt = st.number_input("EXTEMMCFt — EXTEM max clot firmness time (sec)",  min_value=0.0,  max_value=3000.0,   value=7.0,   step=0.1)
     FIBTEMAUC = st.number_input("FIBTEMAUC — FIBTEM area under curve",             min_value=0.0,  max_value=10000.0, value=800.0, step=10.0)
 
 with col2:
     st.markdown("**Clinical Parameters**")
-    CTP     = st.number_input("CTP — Child-Turcotte-Pugh score",    min_value=5,   max_value=15,    value=10,   step=1)
+    CTP     = st.number_input("CTP — Child-Turcotte-Pugh score",    min_value=0,   max_value=15,    value=10,   step=1)
     Albumin = st.number_input("Albumin — Serum albumin (g/dL)",     min_value=0.0, max_value=6.0,   value=2.4,  step=0.1)
     Hb      = st.number_input("Hb — Haemoglobin (g/dL)",           min_value=0.0, max_value=20.0,  value=7.5,  step=0.1)
     Urea    = st.number_input("Urea — Blood urea nitrogen (mg/dL)", min_value=0.0, max_value=300.0, value=45.0, step=1.0)
 
 st.divider()
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Prediction
-# ─────────────────────────────────────────────────────────────────────────────
-predict_clicked = st.button("🔍 Predict NVCB Risk", type="primary", use_container_width=True)
+
+predict_clicked = st.button("Predict NVCB Risk", type="primary", use_container_width=True)
 
 if predict_clicked:
     # Build full feature vector — non-input features default to 0
@@ -282,7 +263,7 @@ if predict_clicked:
     prob       = gbm.predict_proba(patient_sc)[0, 1]
     is_bleeder = prob >= threshold
 
-    st.subheader("📊 GBM Prediction Result")
+    st.subheader("GBM Prediction Result")
 
     if is_bleeder:
         st.markdown("""
@@ -308,24 +289,22 @@ if predict_clicked:
     st.divider()
 
     # Summary table
-    st.subheader("📌 Values Entered")
+    st.subheader("Values Entered")
     summary = pd.DataFrame({
         "Feature": ["EXTEMA10", "EXTEMCFT", "EXTEMAUC", "EXTEMMCFt", "FIBTEMAUC",
                     "CTP",      "Albumin",  "Hb",       "Urea"],
         "Value"  : [EXTEMA10,   EXTEMCFT,   EXTEMAUC,   EXTEMMCFt,   FIBTEMAUC,
                     CTP,         Albumin,    Hb,          Urea],
-        "Unit"   : ["mm",       "sec",      "AU",        "min",        "AU",
+        "Unit"   : ["mm",       "sec",      "AU",        "sec",        "AU",
                     "score",     "g/dL",     "g/dL",      "mg/dL"],
     })
     st.dataframe(summary, use_container_width=True, hide_index=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Footer
-# ─────────────────────────────────────────────────────────────────────────────
+
 st.divider()
 st.markdown("""
 <small>
-⚠️ <b>Disclaimer:</b> This tool is for research and clinical decision support only.
+<b>Disclaimer:</b> This tool is for research and clinical decision support only.
 It does not replace clinical judgement. All predictions must be reviewed by a qualified physician.<br><br>
 Developed at ILBS · GBM Model · AUC 0.854 · Sensitivity 0.84 · n = 6,992 patients
 </small>
