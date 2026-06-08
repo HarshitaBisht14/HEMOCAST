@@ -1,0 +1,14 @@
+# HEMOCAST / NVCB — requirements.txt
+# Streamlit Cloud runs Python 3.14.5 as of June 2026.
+# scikit-learn 1.7.2 is the OLDEST version with a pre-built Python 3.14 wheel.
+# Versions 1.4.2 and 1.6.1 have no py314 wheel → crash loop.
+#
+# ⚠️  Re-save your nvcb_gbm_model.pkl in Colab using scikit-learn==1.7.2
+#     to avoid a version mismatch warning on load.
+
+streamlit>=1.32.0
+numpy>=2.0.0
+pandas>=2.0.0
+scikit-learn==1.7.2
+joblib>=1.4.0
+openpyxl>=3.1.0
