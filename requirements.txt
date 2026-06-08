@@ -1,0 +1,12 @@
+# HEMOCAST / NVCB — requirements.txt
+# Streamlit Cloud is on Python 3.14 as of June 2026.
+# scikit-learn 1.4.2 has no Python 3.14 wheel → use 1.6.1 which does.
+# Re-save your .pkl in Colab with scikit-learn==1.6.1 to eliminate the
+# version-mismatch warning (recommended but not strictly required).
+
+streamlit>=1.32.0
+numpy>=2.0.0
+pandas>=2.0.0
+scikit-learn==1.6.1
+joblib>=1.3.0
+openpyxl>=3.1.0
